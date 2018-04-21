@@ -1,77 +1,79 @@
 const inquirer = require('inquirer');
-const mySQL = require('mysql');
+const mysql = require('mysql');
 
 
-const connection = mySQL.createConnection({
-  host            : 'localhost',
-  user            : 'root',
-  password        : 'root',
-  database        : 'bamazon'
+const connection = mysql.createConnection({
+  host: 'localhost',
+  port: 3306,
+  user: 'root',
+  password: 'root',
+  database: 'bamazon_db'
 });
 
-connection.connect();
-
-connection.query('DROP DATABASE IF EXISTS bamazon');
-
-connection.query('CREATE DATABASE IF NOT EXISTS bamazon');
-
-connection.query('USE bamazon');
-
-connection.query("CREATE TABLE products (item_id INT(11) AUTO_INCREMENT NOT NULL, product_name VARCHAR(30) NOT NULL, department_name VARCHAR(30) NOT NULL, price INT(10) NOT NULL, stock_quantity INT(10) NOT NULL, PRIMARY KEY (item_id))");
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Frisbee", "Toys", 5, 8)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Hot Wheels", "Toys", 4, 5)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Hibiscus", "Garden", 10, 2)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Grill Set", "Home", 7, 5)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Deck Chairs", "Home", 3, 10)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Beanie Babies", "Toys", 2, 10)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Garden Hose", "Garden", 8, 3)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Magic 8 Ball", "Toys", 4, 0)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("Xbox One X", "Video Games", 10, 1)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query(
-  'INSERT INTO products(product_name, department_name, price, stock_quantity) VALUES("PlayStation 4", "Video Games", 10, 0)', function(err, results, fields) {
-    if (err) throw err;
-  });
-
-connection.query('SELECT * FROM products', function(err, results, fields) {
-  if (err) throw err;
-  console.log(results);
+connection.connect((err) => {
+  if (err) {
+    console.log(err);
+  };
+  console.log('Connected as ID ' + connection.threadID);
+  // selectAll();
+  start();
 });
 
-connection.end();
+// const selectAll = () => {
+//   connection.query('SELECT * FROM products', (err, res) => {
+//     if (err) {
+//       console.log(err);
+//     };
+//     console.log(res);
+//   })
+// }
+
+const start = () => {
+  connection.query('SELECT * FROM products', (err, res) => {
+    if (err) {
+      console.log(err);
+    };
+    console.log(res);
+    inquirer.prompt(
+      [
+        {
+          type: 'rawlist',
+          name: 'item',
+          message: 'Which item would you like to order?',
+          choices: function() {
+            var choicesArray = [];
+            for (let i = 0; i < res.length; i++) {
+              choicesArray.push(res[i].product_name);
+              console.log(i);
+            }
+            return choicesArray;
+          }
+        }
+      ]
+    )
+    .then(answer => {
+      for (let i = 0; i < res.length; i++) {
+        if (res[i].product_name === answer.item) {
+          if (res[i].stock_quantity >= 1) {
+            connection.query(
+              'UPDATE products SET ? WHERE ?',
+              [
+                {
+                  stock_quantity: res[i].stock_quantity - 1
+                },
+                {
+                  product_name: answer.item
+                }
+              ]
+            )
+            console.log('Item Added');
+            start();
+          } else {
+            console.log('Insufficient Stock!');
+            start();
+          }
+        }
+      }
+    })
+  });
+};

@@ -20,6 +20,7 @@
   "dependencies": {
     "inquirer": "^5.2.0",
     "my-sql": "^1.2.15",
-    "mysql": "^2.15.0"
+    "mysql": "^2.15.0",
+    "npm": "^5.8.0"
   }
 }
