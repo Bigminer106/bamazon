@@ -33,18 +33,18 @@ const start = () => {
     if (err) {
       console.log(err);
     };
-    console.log(res);
+    // console.log(res);
     inquirer.prompt(
       [
         {
-          type: 'rawlist',
+          type: 'list',
           name: 'item',
           message: 'Which item would you like to order?',
           choices: function() {
             var choicesArray = [];
             for (let i = 0; i < res.length; i++) {
               choicesArray.push(res[i].product_name);
-              console.log(i);
+              // console.log(i);
             }
             return choicesArray;
           }
